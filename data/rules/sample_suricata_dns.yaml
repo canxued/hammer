@@ -1,0 +1,13 @@
+name: DNS Exfiltration Suspect - Long TXT Query
+description: Suspiciously long DNS TXT request often used for data exfiltration
+severity: medium
+author: open-sa
+version: 1
+enabled: true
+tags: [suricata, dns]
+condition:
+  all:
+    - { field: source, op: equals, value: suricata }
+    - { field: event_type, op: equals, value: dns }
+    - { field: raw.dns.rrtype, op: equals, value: TXT }
+    - { field: raw.dns.rrname, op: regex, value: "^[A-Za-z0-9]{40,}\\..+" }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open Threat SA</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Open Threat Situational Awareness</h1>
+    <nav>
+      <a href="/">Overview</a>
+      <a href="/api/docs" target="_blank">API Docs</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Ingestion</h2>
+      <p>POST logs to <code>/ingest/events</code> 或 <code>/ingest/bulk/events</code>.</p>
+    </section>
+    <section>
+      <h2>Quick Actions</h2>
+      <button id="sendSample">发送示例日志</button>
+      <pre id="result"></pre>
+    </section>
+    <section>
+      <h2>Recent Alerts</h2>
+      <ul id="alerts"></ul>
+    </section>
+    <section>
+      <h2>Admin</h2>
+      <p>情报管理 <code>/admin/intel</code>，规则管理 <code>/admin/rules</code>。</p>
+    </section>
+  </main>
+  <footer>
+    <small>v0.1.0</small>
+  </footer>
+  <script>
+    async function fetchAlerts(){
+      const r = await fetch('/search/alerts');
+      if(!r.ok) return;
+      const data = await r.json();
+      const el = document.getElementById('alerts');
+      el.innerHTML = '';
+      for (const a of data){
+        const li = document.createElement('li');
+        li.textContent = `[${a.severity}] ${a.title} (#${a.id})`;
+        el.appendChild(li);
+      }
+    }
+    async function sendSample(){
+      const sample = {
+        source: 'sysmon',
+        event_time: new Date().toISOString(),
+        raw: {
+          EventID: 1,
+          EventIDName: 'ProcessCreate',
+          CommandLine: 'powershell.exe -noP -EncodedCommand YQ==',
+          commandLine: 'powershell.exe -noP -EncodedCommand YQ=='
+        }
+      };
+      const r = await fetch('/ingest/events', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sample)});
+      const t = document.getElementById('result');
+      t.textContent = r.ok ? '已发送示例事件' : '发送失败';
+      setTimeout(fetchAlerts, 800);
+    }
+    document.getElementById('sendSample').addEventListener('click', sendSample);
+    fetchAlerts();
+  </script>
+</body>
+</html>
