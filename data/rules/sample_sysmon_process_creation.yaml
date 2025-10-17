@@ -1,0 +1,12 @@
+name: Suspicious PowerShell EncodedCommand
+description: Detects use of PowerShell with EncodedCommand indicating possible obfuscation
+severity: high
+author: open-sa
+version: 1
+enabled: true
+tags: [sysmon, powershell]
+condition:
+  all:
+    - { field: source, op: equals, value: sysmon }
+    - { field: event_type, op: equals, value: ProcessCreate }
+    - { field: raw.commandLine, op: contains, value: "-EncodedCommand" }
